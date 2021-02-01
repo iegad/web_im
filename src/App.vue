@@ -117,7 +117,7 @@ export default {
     },
     doGetVCode () {
       var this_ = this
-      axios.post('http://127.0.0.1/cgi/get_validate_code', {
+      axios.post('http://192.168.8.234:8080/cgi/get_validate_code', {
         'phoneNum': this_.user.userID
       }).then(rsp => {
         if (rsp.status !== 200) {
@@ -142,7 +142,7 @@ export default {
     },
     doUserLogin () {
       var this_ = this
-      axios.post('http://127.0.0.1/cgi/user_login', {
+      axios.post('http://192.168.8.234:8080/cgi/user_login', {
         'phoneNum': this_.user.userID,
         'vcode': this_.user.vcode,
         'macAddr': this_.user.macAddr,
@@ -168,7 +168,7 @@ export default {
           type: 'success'
         })
 
-        return Promise.resolve('http://127.0.0.1/cgi/get_ws_gateway_list')
+        return Promise.resolve('http://192.168.8.234:8080/cgi/get_ws_gateway_list')
       }).then(url => {
         var this_ = this
         axios.get(url).then(resp => {
