@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- 登录 -->
-    <el-row class="row">
+    <el-row class="row" v-if="!isConnected">
       <el-col :span="2" class="col">
         <el-input v-model="user.userID" :disabled="user.signed" placeholder="请输入UserID"></el-input>
       </el-col>

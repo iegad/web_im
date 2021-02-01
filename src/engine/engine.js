@@ -9,6 +9,7 @@ export default class Engine {
     this.closeHandler = closeHandler
     this.errorHandler = errorHandler
     this.openHandler = openHandler
+    this.activeTime = 0
   }
 
   disconnect () {
@@ -31,6 +32,7 @@ export default class Engine {
       this_.ws.onopen = (ev) => {
         this_.openHandler()
         this_.connected = true
+        this_.ws.ping = this_.ping
         this_.userSignIn(user)
       }
 
@@ -67,7 +69,6 @@ export default class Engine {
     pack.setData(data)
     pack.setCheckcode(data[0] ^ data[data.length - 1])
     pack.setIdempotent(new Date().getTime())
-    console.log(pack.toObject())
     var pbuff = pack.serializeBinary()
     this.ws.send(pbuff)
   }
@@ -77,12 +78,29 @@ export default class Engine {
   }
 
   onMessage (ev) {
+    var this_ = this
     var pack = pb.Package.deserializeBinary(ev.data)
     console.log(pack.toObject())
     switch (pack.getPid()) {
       case pb.PackageID.PID_USERSIGNINRSP:
         var rsp = pb.UserSignInRsp.deserializeBinary(pack.getData())
-        console.log(rsp.toObject())
+        if (rsp.getCode() === 0) {
+          this_.activeTime = pack.getIdempotent()
+          setInterval(() => {
+            var tnow = new Date().getTime()
+            if (tnow - this_.activeTime >= 50000) {
+              var pack = new pb.Package()
+              pack.setPid(pb.PackageID.PID_PING)
+              pack.setIdempotent(tnow)
+              var pbuff = pack.serializeBinary()
+              this_.send(pbuff)
+            }
+          }, 50000)
+        }
+        break
+
+      case pb.PackageID.PID_PONG:
+        this_.activeTime = pack.getIdempotent()
     }
   }
 }
