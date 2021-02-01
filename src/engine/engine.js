@@ -10,6 +10,7 @@ export default class Engine {
     this.errorHandler = errorHandler
     this.openHandler = openHandler
     this.activeTime = 0
+    this.interval = null
   }
 
   disconnect () {
@@ -37,6 +38,10 @@ export default class Engine {
       }
 
       this_.ws.onclose = (ev) => {
+        if (this_.interval !== null) {
+          clearInterval(this_.interval)
+          this_.interval = null
+        }
         this_.closeHandler(ev)
         this_.connected = false
       }
@@ -86,7 +91,7 @@ export default class Engine {
         var rsp = pb.UserSignInRsp.deserializeBinary(pack.getData())
         if (rsp.getCode() === 0) {
           this_.activeTime = pack.getIdempotent()
-          setInterval(() => {
+          this_.interval = setInterval(() => {
             var tnow = new Date().getTime()
             if (tnow - this_.activeTime >= 50000) {
               var pack = new pb.Package()
