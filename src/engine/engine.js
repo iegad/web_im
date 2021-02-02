@@ -83,8 +83,8 @@ export default class Engine {
     this.errorHandler(ev, err)
   }
 
-  chatReq ({from, ctt, content, to}) {
-    var req = new chat.ChatReq()
+  chatMessage ({from, ctt, content, to}) {
+    var req = new chat.ChatMessage()
     req.setCtt(ctt)
     req.setCmt(1)
     req.setTo(to)
@@ -98,7 +98,7 @@ export default class Engine {
     var pack = new pb.Package()
     pack.setPid(pb.PackageID.PID_REQ)
     pack.setData(data)
-    pack.setMid(chat.ChatMessage.MID_CHATREQ)
+    pack.setMid(chat.ChatMessageID.MID_CHATMESSAGE)
     pack.setCheckcode(data[0] ^ data[data.length - 1])
     pack.setIdempotent(new Date().getTime())
     pack.setRouter(router)
@@ -110,7 +110,8 @@ export default class Engine {
   onMessage (ev) {
     var this_ = this
     var pack = pb.Package.deserializeBinary(ev.data)
-    console.log(pack.toObject())
+
+    this_.activeTime = pack.getIdempotent()
     switch (pack.getPid()) {
       case pb.PackageID.PID_USERSIGNINRSP:
         var rsp = pb.UserSignInRsp.deserializeBinary(pack.getData())
@@ -129,18 +130,20 @@ export default class Engine {
         }
         break
 
-      case pb.PackageID.PID_PONG:
-        this_.activeTime = pack.getIdempotent()
+      case pb.PackageID.PID_ACK:
+        console.log(pack.toObject())
         break
 
-      case pb.PackageID.PID_ACK:
-        console.log(pack.getIdempotent())
+      case pb.PackageID.PID_KICKUSERREQ:
+        var txt = new TextDecoder('utf-8').decode(pack.getData())
+        console.log(txt)
+        this_.close()
         break
 
       case pb.PackageID.PID_NOTIFY:
         switch (pack.getMid()) {
-          case chat.ChatMessage.MID_CHATREQ:
-            var req = chat.ChatReq.deserializeBinary(pack.getData())
+          case chat.ChatMessageID.MID_CHATMESSAGE:
+            var req = chat.ChatMessage.deserializeBinary(pack.getData())
             console.log(req.toObject())
         }
     }

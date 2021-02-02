@@ -226,7 +226,7 @@ export default {
         return
       }
 
-      this.engine.chatReq({
+      this.engine.chatMessage({
         from: this.user.userID,
         ctt: this.ctt,
         content: this.content,
