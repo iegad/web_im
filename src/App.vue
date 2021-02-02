@@ -12,7 +12,7 @@
         <el-button type="primary" @click="doGetVCode">获取验证码</el-button>
       </el-col>
       <el-col :span="1" v-else>
-        <el-button type="primary" @click="doUserLogin">登录</el-button>
+        <div v-if="!user.signed"><el-button type="primary" @click="doUserLogin">登录</el-button></div>
       </el-col>
     </el-row>
     <!-- 连接 -->
@@ -32,11 +32,31 @@
         <el-button type="primary" :loading="loading" @click="doConnect">{{isConnected ? '断开连接' : '连接'}}</el-button>
       </el-col>
     </el-row>
-    <!-- 发送按钮 -->
+    <!-- 消息测试 -->
     <el-row class="row" v-if="isConnected">
-    </el-row>
-    <!-- 消息内容 -->
-    <el-row class="row content" v-if="isConnected">
+      <el-col :span="2">
+        <el-input disabled v-model="user.userID"></el-input>
+      </el-col>
+      <el-col :span="2" class="col">
+        <el-select v-model="ctt" placeholder="请选择发送目标类型">
+          <el-option
+            v-for="item in chatToTypeList"
+            :key="item.id"
+            :label="item.value"
+            :value="item.id">
+            <span style="float: left">{{ item.value }}</span>
+          </el-option>
+        </el-select>
+      </el-col>
+      <el-col :span="8" class="col">
+        <el-input placeholder="消息内容" v-model="content"></el-input>
+      </el-col>
+      <el-col :span="2" class="col">
+        <el-input placeholder="接收ID" v-model="toId"></el-input>
+      </el-col>
+      <el-col :span="2" class="col">
+        <el-button type="success" @click="doSendMessage">发送</el-button>
+      </el-col>
     </el-row>
   </div>
 </template>
@@ -63,7 +83,16 @@ export default {
       user: userInfo,
       loading: false,
       isConnected: false,
-      host: ''
+      host: '',
+      chatToTypeList: [
+        {id: 1, value: '个人'},
+        {id: 2, value: '群组'},
+        {id: 3, value: '频道'},
+        {id: 4, value: '所有人'}
+      ],
+      ctt: 1,
+      content: '',
+      toId: 0
     }
   },
   methods: {
@@ -186,6 +215,22 @@ export default {
           message: err.message,
           type: 'error'
         })
+      })
+    },
+    doSendMessage () {
+      if (this.content.length === 0 || this.toId.length === 0) {
+        this.$message({
+          message: '信息不全',
+          type: 'warning'
+        })
+        return
+      }
+
+      this.engine.chatReq({
+        from: this.user.userID,
+        ctt: this.ctt,
+        content: this.content,
+        to: this.toId
       })
     }
   }

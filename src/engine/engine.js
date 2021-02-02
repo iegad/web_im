@@ -1,4 +1,5 @@
 import pb from '@/pb/00_package_pb.js'
+import chat from '@/pb/01_chat_pb.js'
 
 export default class Engine {
   constructor ({host, router, openHandler, errorHandler, closeHandler}) {
@@ -82,6 +83,30 @@ export default class Engine {
     this.errorHandler(ev, err)
   }
 
+  chatReq ({from, ctt, content, to}) {
+    var req = new chat.ChatReq()
+    req.setCtt(ctt)
+    req.setCmt(1)
+    req.setTo(to)
+    req.setFrom(from)
+    req.setContent(content)
+    var data = req.serializeBinary()
+
+    var router = new pb.Router()
+    router.setToservice('chat')
+
+    var pack = new pb.Package()
+    pack.setPid(pb.PackageID.PID_REQ)
+    pack.setData(data)
+    pack.setMid(chat.ChatMessage.MID_CHATREQ)
+    pack.setCheckcode(data[0] ^ data[data.length - 1])
+    pack.setIdempotent(new Date().getTime())
+    pack.setRouter(router)
+
+    var pbuff = pack.serializeBinary()
+    this.ws.send(pbuff)
+  }
+
   onMessage (ev) {
     var this_ = this
     var pack = pb.Package.deserializeBinary(ev.data)
@@ -106,6 +131,18 @@ export default class Engine {
 
       case pb.PackageID.PID_PONG:
         this_.activeTime = pack.getIdempotent()
+        break
+
+      case pb.PackageID.PID_ACK:
+        console.log(pack.getIdempotent())
+        break
+
+      case pb.PackageID.PID_NOTIFY:
+        switch (pack.getMid()) {
+          case chat.ChatMessage.MID_CHATREQ:
+            var req = chat.ChatReq.deserializeBinary(pack.getData())
+            console.log(req.toObject())
+        }
     }
   }
 }
