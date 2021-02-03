@@ -63,6 +63,7 @@ export default class Engine {
   }
 
   userSignIn ({userID, token, macAddr, deviceCode}) {
+    console.log(macAddr)
     var req = new pb.UserSignInReq()
     req.setUserid(userID)
     req.setToken(token)
