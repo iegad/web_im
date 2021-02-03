@@ -2,20 +2,21 @@
   <el-container class="container">
     <el-aside width="80px" class="tools">
       <el-button class="avator"></el-button>
+      <a href="javascript:void(0);" style="margin-left:10px;margin-top:10px;text-decoration:none;font-size:35px;color:#EEE" class="tag el-icon-circle-plus-outline"></a>
     </el-aside>
     <el-aside width="260px" class="list">list</el-aside>
     <el-container>
       <el-header class="header">
-
+        <span><a href="javascript:void(0)" style="text-decoration:none;font-size:25px;color:#323">{{ toID === 0 ? '' : toID }}</a></span>
       </el-header>
       <el-main class="main">
-
+        <!-- TODO: 添加聊天气泡 -->
       </el-main>
       <el-footer class="footer">
           <a href="javascript:void(0);" class="el-icon-paperclip tag"></a>
           <a href="javascript:void(0);" class="el-icon-star-off tag"></a>
-          <el-input></el-input>
-          <el-button type="success">发送</el-button>
+          <el-input v-model="content"></el-input>
+          <el-button type="success" style="margin-left:5px;">发送</el-button>
       </el-footer>
     </el-container>
   </el-container>
@@ -30,74 +31,78 @@ export default {
   data () {
     return {
       engine: null,
-      isConnected: false
+      isConnected: false,
+      toID: 100000,
+      from: 0,
+      content: ''
     }
   },
-  created () {
-    // var this_ = this
-    // var userID = localStorage.getItem('userID')
-    // var token = localStorage.getItem('token')
-    // var macAddr = localStorage.getItem('macAddr')
-    // var deviceCode = localStorage.getItem('deviceCode')
+  // created () {
+  //   var this_ = this
+  //   var userID = localStorage.getItem('userID')
+  //   var token = localStorage.getItem('token')
+  //   var macAddr = localStorage.getItem('macAddr')
+  //   var deviceCode = localStorage.getItem('deviceCode')
 
-    // if (isNaN(Number(userID)) || String(token).length !== 36 || String(macAddr).length === 0 || String(deviceCode).length === 0) {
-    //   this.$router.push('/login')
-    //   return
-    // }
+  //   if (isNaN(Number(userID)) || String(token).length !== 36 || String(macAddr).length === 0 || String(deviceCode).length === 0) {
+  //     this.$router.push('/login')
+  //     return
+  //   }
 
-    // api.getGatewayList().then(list => {
-    //   if (list.length === 0) {
-    //     return Promise.reject(new Error('无可用的网关'))
-    //   }
+  //   api.getGatewayList().then(list => {
+  //     if (list.length === 0) {
+  //       return Promise.reject(new Error('无可用的网关'))
+  //     }
 
-    //   var host = list[new Date().getTime() % list.length].endpoint
-    //   this_.engine = new Engine({
-    //     host: host,
-    //     router: '/',
-    //     openHandler: function (ev) {
-    //       this_.$message({
-    //         message: '连接成功',
-    //         type: 'success'
-    //       })
-    //       this_.isConnected = true
-    //     },
-    //     errorHandler: function (ev, err) {
-    //       this_.$message({
-    //         message: err.message,
-    //         type: 'error'
-    //       })
-    //     },
-    //     closeHandler: function (ev) {
-    //       this_.$message({
-    //         message: '连接已断开',
-    //         type: 'warning'
-    //       })
-    //       this_.isConnected = false
-    //       localStorage.removeItem('userID')
-    //       localStorage.removeItem('token')
-    //       localStorage.removeItem('macAddr')
-    //       localStorage.removeItem('deviceCode')
-    //     }
-    //   })
+  //     var host = list[new Date().getTime() % list.length].endpoint
+  //     this_.engine = new Engine({
+  //       host: host,
+  //       router: '/',
+  //       openHandler: function (ev) {
+  //         this_.$message({
+  //           message: '连接成功',
+  //           type: 'success'
+  //         })
+  //         this_.isConnected = true
+  //         this_.from = userID
+  //       },
+  //       errorHandler: function (ev, err) {
+  //         this_.$message({
+  //           message: err.message,
+  //           type: 'error'
+  //         })
+  //       },
+  //       closeHandler: function (ev) {
+  //         this_.$message({
+  //           message: '连接已断开',
+  //           type: 'warning'
+  //         })
+  //         this_.isConnected = false
+  //         localStorage.removeItem('userID')
+  //         localStorage.removeItem('token')
+  //         localStorage.removeItem('macAddr')
+  //         localStorage.removeItem('deviceCode')
+  //       }
+  //     })
 
-    //   this_.engine.connect({
-    //     userID: userID,
-    //     token: token,
-    //     macAddr: macAddr,
-    //     deviceCode: deviceCode
-    //   }).catch(err => {
-    //     this_.$message({
-    //       message: err.message,
-    //       type: 'error'
-    //     })
-    //   })
-    // }).catch(err => {
-    //   this_.$message({
-    //     message: err.message,
-    //     type: 'error'
-    //   })
-    // })
-  },
+  //     this_.engine.connect({
+  //       userID: userID,
+  //       token: token,
+  //       macAddr: macAddr,
+  //       deviceCode: deviceCode
+  //     }).catch(err => {
+  //       this_.$message({
+  //         message: err.message,
+  //         type: 'error'
+  //       })
+  //     })
+  //   }).catch(err => {
+  //     this_.$message({
+  //       message: err.message,
+  //       type: 'error'
+  //     })
+  //   })
+  // },
   methods: {
   }
 }
@@ -116,7 +121,9 @@ export default {
   width: 40px;
   height: 40px;
   font-size: 30px;
-  text-decoration: none
+  text-decoration: none;
+  margin-top: 8px;
+  margin-right:10px;
 }
 
 .avator {
@@ -143,6 +150,9 @@ export default {
   border-bottom-width:1px;
   border-bottom-style:solid;
   border-bottom-color:#BBB;
+  text-align: left;
+  align-items: center;
+  display: flex;
 }
 
 .footer {

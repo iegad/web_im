@@ -1,6 +1,8 @@
 import pb from '@/pb/00_package_pb.js'
 import chat from '@/pb/01_chat_pb.js'
 
+var pingInterval = null
+
 export default class Engine {
   constructor ({host, router, openHandler, errorHandler, closeHandler}) {
     this.host = host
@@ -11,7 +13,6 @@ export default class Engine {
     this.errorHandler = errorHandler
     this.openHandler = openHandler
     this.activeTime = 0
-    this.interval = null
   }
 
   disconnect () {
@@ -39,9 +40,8 @@ export default class Engine {
       }
 
       this_.ws.onclose = (ev) => {
-        if (this_.interval !== null) {
-          clearInterval(this_.interval)
-          this_.interval = null
+        if (pingInterval !== null) {
+          clearInterval(pingInterval)
         }
         this_.closeHandler(ev)
         this_.connected = false
@@ -63,7 +63,6 @@ export default class Engine {
   }
 
   userSignIn ({userID, token, macAddr, deviceCode}) {
-    console.log(macAddr)
     var req = new pb.UserSignInReq()
     req.setUserid(userID)
     req.setToken(token)
@@ -117,8 +116,7 @@ export default class Engine {
       case pb.PackageID.PID_USERSIGNINRSP:
         var rsp = pb.UserSignInRsp.deserializeBinary(pack.getData())
         if (rsp.getCode() === 0) {
-          this_.activeTime = pack.getIdempotent()
-          this_.interval = setInterval(() => {
+          pingInterval = setInterval(() => {
             var tnow = new Date().getTime()
             if (tnow - this_.activeTime >= 50000) {
               var pack = new pb.Package()
@@ -127,12 +125,16 @@ export default class Engine {
               var pbuff = pack.serializeBinary()
               this_.send(pbuff)
             }
-          }, 50000)
+          }, 10000)
         }
         break
 
+      case pb.PackageID.PID_PONG:
+        console.log('PONG => ', pack.toObject())
+        break
+
       case pb.PackageID.PID_ACK:
-        console.log(pack.toObject())
+        console.log('ACK => ', pack.toObject())
         break
 
       case pb.PackageID.PID_KICKUSERREQ:
