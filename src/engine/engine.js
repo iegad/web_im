@@ -1,10 +1,8 @@
 import pb from '@/pb/00_package_pb.js'
 import chat from '@/pb/01_chat_pb.js'
 
-var pingInterval = null
-
 export default class Engine {
-  constructor ({host, router, openHandler, errorHandler, closeHandler}) {
+  constructor ({host, router, openHandler, errorHandler, closeHandler, messageHandler}) {
     this.host = host
     this.router = router
     this.ws = null
@@ -12,11 +10,12 @@ export default class Engine {
     this.closeHandler = closeHandler
     this.errorHandler = errorHandler
     this.openHandler = openHandler
+    this.onMessage = messageHandler
     this.activeTime = 0
   }
 
   disconnect () {
-    if (this.ws !== null && this.connected) {
+    if (this.ws !== null) {
       this.ws.close()
     }
   }
@@ -40,9 +39,6 @@ export default class Engine {
       }
 
       this_.ws.onclose = (ev) => {
-        if (pingInterval !== null) {
-          clearInterval(pingInterval)
-        }
         this_.closeHandler(ev)
         this_.connected = false
       }
@@ -79,8 +75,12 @@ export default class Engine {
     this.ws.send(pbuff)
   }
 
-  onError (ev, err) {
-    this.errorHandler(ev, err)
+  ping (tnow) {
+    var pack = new pb.Package()
+    pack.setPid(pb.PackageID.PID_PING)
+    pack.setIdempotent(tnow)
+    var pbuff = pack.serializeBinary()
+    this.ws.send(pbuff)
   }
 
   chatMessage ({from, ctt, content, to}) {
@@ -105,50 +105,6 @@ export default class Engine {
 
     var pbuff = pack.serializeBinary()
     this.ws.send(pbuff)
-  }
-
-  onMessage (ev) {
-    var this_ = this
-    var pack = pb.Package.deserializeBinary(ev.data)
-
-    this_.activeTime = pack.getIdempotent()
-    switch (pack.getPid()) {
-      case pb.PackageID.PID_USERSIGNINRSP:
-        var rsp = pb.UserSignInRsp.deserializeBinary(pack.getData())
-        if (rsp.getCode() === 0) {
-          pingInterval = setInterval(() => {
-            var tnow = new Date().getTime()
-            if (tnow - this_.activeTime >= 50000) {
-              var pack = new pb.Package()
-              pack.setPid(pb.PackageID.PID_PING)
-              pack.setIdempotent(tnow)
-              var pbuff = pack.serializeBinary()
-              this_.send(pbuff)
-            }
-          }, 10000)
-        }
-        break
-
-      case pb.PackageID.PID_PONG:
-        console.log('PONG => ', pack.toObject())
-        break
-
-      case pb.PackageID.PID_ACK:
-        console.log('ACK => ', pack.toObject())
-        break
-
-      case pb.PackageID.PID_KICKUSERREQ:
-        var txt = new TextDecoder('utf-8').decode(pack.getData())
-        console.log(txt)
-        this_.close()
-        break
-
-      case pb.PackageID.PID_NOTIFY:
-        switch (pack.getMid()) {
-          case chat.ChatMessageID.MID_CHATMESSAGE:
-            var req = chat.ChatMessage.deserializeBinary(pack.getData())
-            console.log(req.toObject())
-        }
-    }
+    return req.toObject()
   }
 }

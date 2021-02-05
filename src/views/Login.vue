@@ -105,7 +105,7 @@ export default {
             localStorage.setItem('userID', data.userID)
             localStorage.setItem('token', data.token)
             localStorage.setItem('macAddr', data.macAddr)
-            localStorage.setItem('deviceCode', data.macAddr)
+            localStorage.setItem('deviceCode', data.deviceCode)
             this_.$router.push('/')
           }).catch(err => {
             this_.$message({
