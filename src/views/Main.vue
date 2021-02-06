@@ -32,7 +32,7 @@
       <el-footer class="footer" v-if="to > 0">
           <a href="javascript:void(0);" class="el-icon-paperclip tag"></a>
           <a href="javascript:void(0);" class="el-icon-star-off tag"></a>
-          <el-input v-model="content"></el-input>
+          <el-input v-model="content" @keypress.native.enter="btnSend"></el-input>
           <el-button type="success" style="margin-left:5px;" @click="btnSend">发送</el-button>
       </el-footer>
     </el-container>
@@ -119,10 +119,10 @@ export default {
               if (rsp.getCode() === 0) {
                 this_.pingInterval = setInterval(() => {
                   var tnow = new Date().getTime()
-                  if (tnow - this_.activeTime >= 45000) {
+                  if (tnow - this_.activeTime >= 30000) {
                     this_.engine.ping(tnow)
                   }
-                }, 10000)
+                }, 5000)
               } else {
                 this_.engine.disconnect()
               }
@@ -206,6 +206,9 @@ export default {
       var tmp = JSON.parse(JSON.stringify(msg))
       this_.chatHistory.push(tmp)
       this_.content = ''
+    },
+    txtChange () {
+
     }
   }
 }
