@@ -18,13 +18,7 @@
       <el-header class="header">
         <span><a href="javascript:void(0)" style="text-decoration:none;font-size:25px;color:#323">{{ to === 0 ? '' : to }}</a></span>
       </el-header>
-      <el-main class="main">
-        <!-- <el-row>
-          <div class="send">你好<div class="arrow"></div></div>
-        </el-row>
-        <el-row>
-          <div class="recv">We can see a short distance ahead<div class="arrow"></div></div>
-        </el-row> -->
+      <el-main class="main" id="chat-content">
         <el-row v-for="(msg, i) in chatHistory" v-bind:key="i">
           <div :class="msg.from === from ? 'send' : 'recv'">{{msg.content}}<div class="arrow"></div></div>
         </el-row>
@@ -150,6 +144,10 @@ export default {
                 case chat.ChatMessageID.MID_CHATMESSAGE:
                   var req = chat.ChatMessage.deserializeBinary(pack.getData())
                   this_.chatHistory.push(JSON.parse(JSON.stringify(req.toObject())))
+                  this_.$nextTick(() => {
+                    let msg = document.getElementById('chat-content') // 获取对象
+                    msg.scrollTop = msg.scrollHeight // 滚动高度
+                  })
                   break
               }
               break
@@ -206,6 +204,11 @@ export default {
       var tmp = JSON.parse(JSON.stringify(msg))
       this_.chatHistory.push(tmp)
       this_.content = ''
+
+      this.$nextTick(() => {
+        let msg = document.getElementById('chat-content') // 获取对象
+        msg.scrollTop = msg.scrollHeight // 滚动高度
+      })
     },
     txtChange () {
 
@@ -230,15 +233,6 @@ export default {
   text-decoration: none;
   margin-top: 8px;
   margin-right:10px;
-}
-
-.chat-send {
-  float: right;
-  width: 800px;
-}
-
-.chat-recv {
-  float: left;
 }
 
 .chat {
@@ -298,13 +292,13 @@ export default {
   background:#F8C301;
   border-radius:5px; /* 圆角 */
   margin-top: 30px;
-  margin-left: 200px;
   max-width: 600px;
   text-align: left;
   width: fit-content;
   width: -webkit-fit-content;
   width: -moz-fit-content;
   word-wrap: break-word;
+  float: right;
 }
 
 .send .arrow {
