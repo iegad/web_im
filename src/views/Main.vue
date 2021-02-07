@@ -10,8 +10,8 @@
       </a>
     </el-aside>
     <el-aside width="260px" class="list">
-      <el-button class="chat" v-for="(chatID, i) in chatList" v-bind:key="i" shadow="hover" @click="btnChat(i)">
-        {{ chatID }}
+      <el-button class="chat" v-for="(list, v) in chatList" v-bind:key="v" shadow="hover" @click="btnChat(v)">
+        {{ v }}
       </el-button>
     </el-aside>
     <el-container>
@@ -49,9 +49,8 @@ export default {
       to: 0,
       from: 0,
       content: '',
-      chatList: [],
-      chatHistoryMap: new Map(), // key => chatID, value => []message
-      chatHistory: []
+      chatList: {},
+      chatHistory: null
     }
   },
   created () {
@@ -143,7 +142,20 @@ export default {
               switch (pack.getMid()) {
                 case chat.ChatMessageID.MID_CHATMESSAGE:
                   var req = chat.ChatMessage.deserializeBinary(pack.getData())
-                  this_.chatHistory.push(JSON.parse(JSON.stringify(req.toObject())))
+                  var msg = JSON.parse(JSON.stringify(req.toObject()))
+                  var his = this_.chatList[msg.from]
+                  if (his === undefined) {
+                    console.log('---------------')
+                    console.log(this_.chatList)
+                    var tmpList = []
+                    tmpList.push(msg)
+                    this_.chatList[msg.from] = tmpList
+                    this_.to = msg.from
+                    this_.chatHistory = this_.chatList[msg.from]
+                  } else {
+                    console.log('================')
+                    his.push(msg)
+                  }
                   this_.$nextTick(() => {
                     let msg = document.getElementById('chat-content') // 获取对象
                     msg.scrollTop = msg.scrollHeight // 滚动高度
@@ -182,16 +194,16 @@ export default {
         inputPattern: /^[1-9][0-9]{5,14}$/,
         inputErrorMessage: '请输入正确的对话ID, 6-15位数字'
       }).then(({ value }) => {
-        this_.chatList.push(value)
-        this_.chatHistoryMap.set(value, [])
+        this_.chatList[value] = []
         this_.to = value
-        this_.chatHistory = []
+        this_.chatHistory = this_.chatList[value]
       }).catch(() => {
         console.log('取消')
       })
     },
     btnChat (idx) {
-      this.to = this.chatList[idx]
+      this.to = idx
+      this.chatHistory = this.chatList[idx]
     },
     btnSend () {
       var this_ = this
@@ -209,9 +221,6 @@ export default {
         let msg = document.getElementById('chat-content') // 获取对象
         msg.scrollTop = msg.scrollHeight // 滚动高度
       })
-    },
-    txtChange () {
-
     }
   }
 }
