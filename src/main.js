@@ -6,7 +6,12 @@ import router from './router'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import moment from 'moment'
+import less from 'less'
 
+import VueAliplayerV2 from 'vue-aliplayer-v2'
+
+Vue.use(less)
+Vue.use(VueAliplayerV2)
 Vue.prototype.$moment = moment
 Vue.use(ElementUI)
 Vue.config.productionTip = false

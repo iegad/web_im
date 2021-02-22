@@ -1,0 +1,5 @@
+ffmpeg -re -i demo.flv -c copy -f flv rtmp://localhost:1935/live/rfBd56ti2SMtYvSgD5xAV0YU99zampta7Z7S575KLkIZ9PYk
+http://192.168.10.21:7002/live/movie.m3u8
+rtmp://192.168.10.21:1935/live/movie
+
+http://192.168.10.21:8090/control/get?room=movie

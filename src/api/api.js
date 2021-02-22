@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const HOST = '192.168.8.234:8080'
+const HOST = '192.168.10.21:8080'
 
 async function getGatewayList () {
   try {
